@@ -13,18 +13,32 @@ class ImageParser:
     
     def parse(self, file_path: str) -> dict:
         """Parse image file and extract text using OCR."""
-        # TODO: Implement OCR with Pillow/Tesseract
-        return {
-            "content": "",
-            "metadata": {
-                "file_path": file_path,
-                "file_type": "image",
-                "width": 0,
-                "height": 0,
-                "format": "",
-                "ocr_confidence": 0.0
+        try:
+            # TODO: Implement OCR with Pillow/Tesseract
+            return {
+                "content": "",
+                "metadata": {
+                    "file_path": file_path,
+                    "file_type": "image",
+                    "width": 0,
+                    "height": 0,
+                    "format": "",
+                    "ocr_confidence": 0.0
+                }
             }
-        }
+        except Exception as e:
+            return {
+                "content": "",
+                "metadata": {
+                    "file_path": file_path,
+                    "file_type": "image",
+                    "error": str(e),
+                    "width": 0,
+                    "height": 0,
+                    "format": "",
+                    "ocr_confidence": 0.0
+                }
+            }
     
     def extract_text_ocr(self, file_path: str) -> str:
         """Extract text from image using OCR."""

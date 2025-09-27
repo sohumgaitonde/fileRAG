@@ -1,0 +1,18 @@
+This is a sample text file for testing the TXT parser.
+
+It contains multiple paragraphs and various types of content.
+
+Features to test:
+- Multiple lines
+- Different line endings
+- Special characters: émojis, ñ, ü
+- Numbers: 123, 456.789
+- Punctuation: !@#$%^&*()
+
+This file should test encoding detection and basic text analysis.
+
+Line 1
+Line 2
+Line 3
+
+Final paragraph with some content to analyze.
