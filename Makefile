@@ -1,10 +1,21 @@
-.PHONY: install dev-install clean test lint format run
+.PHONY: setup install dev-install clean test lint format run venv
+
+# Environment setup
+setup: venv install
+
+venv:
+	python3 -m venv venv
+	@echo "Virtual environment created. Activate with: source venv/bin/activate"
 
 # Installation
 install:
+	pip install --upgrade pip
+	pip install -r requirements.txt
 	pip install -e .
 
 dev-install:
+	pip install --upgrade pip
+	pip install -r requirements.txt
 	pip install -e ".[dev]"
 
 # Development
@@ -14,7 +25,13 @@ clean:
 	find . -type d -name "*.egg-info" -exec rm -rf {} +
 
 test:
-	pytest tests/
+	pytest tests/ -v
+
+test-crawler:
+	pytest tests/test_crawler.py -v
+
+test-coverage:
+	pytest tests/ --cov=src --cov-report=html
 
 lint:
 	flake8 src/

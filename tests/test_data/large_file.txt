@@ -1,0 +1,5 @@
+# This would be a large file for testing size limits
+# In a real test, this would be generated to exceed the size limit
+# For now, this is just a placeholder for the large file test
+This is a placeholder for a large file that would exceed size limits.
+In actual testing, we would generate a file larger than the configured limit.
