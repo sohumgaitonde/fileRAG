@@ -36,6 +36,12 @@ test-chunker:
 test-chunker-integration:
 	pytest tests/integration_test_chunker.py -v -s
 
+test-embeddings:
+	pytest tests/test_embeddings.py -v
+
+test-embeddings-integration:
+	pytest tests/integration_test_embeddings.py -v -s
+
 test-coverage:
 	pytest tests/ --cov=src --cov-report=html
 
@@ -67,6 +73,8 @@ help:
 	@echo "  test-crawler - Run crawler tests only"
 	@echo "  test-chunker - Run chunker unit tests"
 	@echo "  test-chunker-integration - Run chunker integration tests"
+	@echo "  test-embeddings - Run embeddings unit tests"
+	@echo "  test-embeddings-integration - Run embeddings integration tests"
 	@echo "  test-coverage - Run tests with coverage report"
 	@echo "  lint        - Run linting checks"
 	@echo "  format      - Format code"
