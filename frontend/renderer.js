@@ -17,8 +17,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add event listeners
     const mainSearchInput = document.getElementById('mainSearchInput');
     if (mainSearchInput) {
+        // Auto-resize textarea
+        mainSearchInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+        });
+        
+        // Handle Enter key (but allow Shift+Enter for new lines)
         mainSearchInput.addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
                 performSearch();
             }
         });
@@ -26,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Tab Management
-function showTab(tabName) {
+function showTab(tabName, clickedElement = null) {
     // Hide all tab content
     document.querySelectorAll('.tab-content').forEach(tab => {
         tab.classList.remove('active');
@@ -45,9 +53,15 @@ function showTab(tabName) {
         targetTab.style.display = 'block';
     }
     
-    // Add active class to clicked bottom tab
-    if (event && event.target) {
-        event.target.classList.add('active');
+    // Add active class to clicked bottom tab (if provided)
+    if (clickedElement) {
+        clickedElement.classList.add('active');
+    } else {
+        // Find the corresponding bottom tab and activate it
+        const bottomTab = document.querySelector(`[onclick="showTab('${tabName}')"]`);
+        if (bottomTab) {
+            bottomTab.classList.add('active');
+        }
     }
     
     currentTab = tabName;
@@ -108,6 +122,8 @@ async function performSearch() {
     }
     
     try {
+        // Automatically switch to search tab to show results
+        showTab('search');
         showStatus('searchResults', 'Searching...', 'info');
         
         const response = await axios.post(`${API_BASE_URL}/api/search`, {

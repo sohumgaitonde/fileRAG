@@ -13,7 +13,7 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background: #0a0a0a;
+            background: #1a1a1a;
             color: #ffffff;
             min-height: 100vh;
             overflow-x: hidden;
@@ -51,10 +51,10 @@
         .search-bar {
             display: flex;
             align-items: center;
-            background: #1a1a1a;
-            border: 1px solid #333;
+            background: #2a2a2a;
+            border: 1px solid #444;
             border-radius: 12px;
-            padding: 8px;
+            padding: 12px 16px;
             transition: all 0.3s ease;
         }
         
@@ -63,46 +63,24 @@
             box-shadow: 0 0 0 2px rgba(0, 168, 255, 0.2);
         }
         
-        .search-controls-left,
-        .search-controls-right {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        
-        .control-btn {
-            width: 32px;
-            height: 32px;
-            border: none;
-            border-radius: 6px;
-            background: transparent;
-            color: #666;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-        }
-        
-        .control-btn:hover {
-            background: #333;
-            color: #fff;
-        }
-        
-        .control-btn.active {
-            background: #00a8ff;
-            color: #000;
-        }
         
         .main-search-input {
-            flex: 1;
+            width: 100%;
             border: none;
             background: transparent;
             color: #fff;
             font-size: 16px;
-            padding: 12px 16px;
+            padding: 0;
             outline: none;
             font-family: inherit;
+            resize: none;
+            min-height: 24px;
+            max-height: 200px;
+            overflow-y: auto;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            line-height: 1.5;
+            vertical-align: top;
         }
         
         .main-search-input::placeholder {
@@ -153,10 +131,10 @@
         }
         
         .tab-panel {
-            background: #1a1a1a;
+            background: #2a2a2a;
             border-radius: 12px;
             padding: 30px;
-            border: 1px solid #333;
+            border: 1px solid #444;
         }
         
         .button {
@@ -180,11 +158,11 @@
         .input {
             width: 100%;
             padding: 12px 16px;
-            border: 1px solid #333;
+            border: 1px solid #444;
             border-radius: 8px;
             font-size: 14px;
             margin-bottom: 15px;
-            background: #0a0a0a;
+            background: #1a1a1a;
             color: #fff;
             transition: all 0.3s ease;
             font-family: inherit;
@@ -250,11 +228,11 @@
         }
         
         .search-result {
-            border: 1px solid #333;
+            border: 1px solid #444;
             padding: 20px;
             margin: 15px 0;
             border-radius: 8px;
-            background: #1a1a1a;
+            background: #2a2a2a;
             transition: all 0.3s ease;
         }
         
@@ -269,16 +247,16 @@
         }
         
         ::-webkit-scrollbar-track {
-            background: #1a1a1a;
+            background: #2a2a2a;
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #333;
+            background: #444;
             border-radius: 4px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #666;
         }
     </style>
 </head>
@@ -292,71 +270,25 @@
             
             <div class="search-container">
                 <div class="search-bar">
-                    <div class="search-controls-left">
-                        <button class="control-btn active" id="searchMode">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-                            </svg>
-                        </button>
-                        <button class="control-btn" id="indexMode">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M10 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z"/>
-                            </svg>
-                        </button>
-                        <button class="control-btn" id="statusMode">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                            </svg>
-                        </button>
-                    </div>
-                    
-                    <input type="text" id="mainSearchInput" class="main-search-input" placeholder="Ask anything or @mention a Space">
-                    
-                    <div class="search-controls-right">
-                        <button class="control-btn">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                            </svg>
-                        </button>
-                        <button class="control-btn">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                            </svg>
-                        </button>
-                        <button class="control-btn">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                            </svg>
-                        </button>
-                        <button class="control-btn">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                            </svg>
-                        </button>
-                        <button class="control-btn active">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                            </svg>
-                        </button>
-                    </div>
+                    <textarea id="mainSearchInput" class="main-search-input" placeholder="Ask or search anything" rows="1"></textarea>
                 </div>
             </div>
             
             <!-- Bottom Tabs -->
             <div class="bottom-tabs">
-                <button class="bottom-tab active" onclick="showTab('search')">
+                <button class="bottom-tab active" onclick="showTab('search', this)">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
                     </svg>
                     Search
                 </button>
-                <button class="bottom-tab" onclick="showTab('index')">
+                <button class="bottom-tab" onclick="showTab('index', this)">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M10 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z"/>
                     </svg>
                     Setup
                 </button>
-                <button class="bottom-tab" onclick="showTab('status')">
+                <button class="bottom-tab" onclick="showTab('status', this)">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                     </svg>
