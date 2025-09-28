@@ -9,7 +9,8 @@ This module provides the essential database operations:
 
 import os
 import uuid
-from typing import List, Dict, Any, Optional
+import json
+from typing import List, Dict, Any, Optional, Union
 import chromadb
 from chromadb.config import Settings
 
@@ -23,6 +24,36 @@ class VectorDatabase:
         self.client = None
         self.collection = None
         self._initialized = False
+    
+    def _sanitize_metadata(self, metadata: Dict[str, Any]) -> Dict[str, Union[str, int, float, bool, None]]:
+        """
+        Sanitize metadata to ensure all values are ChromaDB-compatible types.
+        
+        ChromaDB only accepts: str, int, float, bool, or None
+        Complex objects are converted to JSON strings.
+        """
+        sanitized = {}
+        
+        for key, value in metadata.items():
+            if value is None:
+                sanitized[key] = None
+            elif isinstance(value, (str, int, float, bool)):
+                sanitized[key] = value
+            elif isinstance(value, (list, dict)):
+                # Convert complex objects to JSON strings
+                try:
+                    sanitized[f"{key}_json"] = json.dumps(value)
+                    # Also add a summary for lists
+                    if isinstance(value, list):
+                        sanitized[f"{key}_count"] = len(value)
+                except (TypeError, ValueError):
+                    # If JSON serialization fails, convert to string
+                    sanitized[f"{key}_str"] = str(value)
+            else:
+                # Convert other types to string
+                sanitized[f"{key}_str"] = str(value)
+        
+        return sanitized
     
     def initialize(self) -> bool:
         """Initialize ChromaDB client and collection."""
@@ -95,16 +126,19 @@ class VectorDatabase:
             chunk_id = f"{filename}_{i}_{uuid.uuid4().hex[:8]}"
             chunk_ids.append(chunk_id)
             
-            # Prepare metadata for this chunk
-            chunk_metadata = {
+            # Prepare base metadata for this chunk
+            base_metadata = {
                 "filename": filename,
                 "filepath": filepath,
                 "chunk_index": i,
                 "total_chunks": len(chunks),
-                "chunk_content": chunk,
-                **metadata  # Include any additional metadata
+                "chunk_content": chunk[:500] + "..." if len(chunk) > 500 else chunk,  # Truncate long content
             }
-            metadatas.append(chunk_metadata)
+            
+            # Merge with additional metadata and sanitize
+            full_metadata = {**base_metadata, **metadata}
+            sanitized_metadata = self._sanitize_metadata(full_metadata)
+            metadatas.append(sanitized_metadata)
         
         # Store in ChromaDB
         self.collection.add(
