@@ -6,11 +6,13 @@ uvicorn>=0.24.0
 ollama>=0.2.0
 transformers>=4.35.0
 torch>=2.0.0
+numpy>=1.24.0
 
 # File parsing
 PyPDF2>=3.0.0
 python-docx>=0.8.11
 Pillow>=10.0.0
+easyocr>=1.7.0
 
 # API dependencies
 python-multipart>=0.0.6

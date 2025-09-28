@@ -5,7 +5,7 @@ A simple file RAG (Retrieval-Augmented Generation) system for effectively search
 ## ✨ Features
 
 - 🔍 **Smart File Discovery**: Automatically crawls directories for supported file types
-- 📄 **Multi-Format Support**: PDF, DOCX, TXT, Markdown, and Images (with OCR)
+- 📄 **Multi-Format Support**: PDF, DOCX, TXT, Markdown, and Images (with BLIP + OCR)
 - 🧠 **Advanced Chunking**: Intelligent text splitting using Chonkie
 - 🎯 **Vector Search**: Fast similarity search with ChromaDB
 - 🤖 **AI-Powered Queries**: Query optimization using SLM via Ollama
@@ -20,7 +20,7 @@ The system is organized into three main sections:
 
 ### 📚 Indexing
 - **File Crawling**: Discover and monitor files in specified directories
-- **Content Parsing**: Extract text from various file formats (PDF, DOCX, TXT, MD, Images)
+- **Content Parsing**: Extract text from various file formats (PDF, DOCX, TXT, MD, Images with BLIP + OCR)
 - **Text Chunking**: Split content into manageable chunks using Chonkie
 - **Embeddings**: Generate vector embeddings using Qwen 2B model
 - **Pipeline**: Orchestrate the indexing process
@@ -36,7 +36,7 @@ The system is organized into three main sections:
 - **Embeddings**: Qwen 2B
 - **Query Generation**: SLM via Ollama
 - **API**: FastAPI
-- **File Parsing**: PyPDF2, python-docx, Pillow
+- **File Parsing**: PyPDF2, python-docx, Pillow, EasyOCR
 
 ## 🚀 Quick Start
 
@@ -104,6 +104,7 @@ The installation includes:
 - `PyPDF2>=3.0.0` - PDF parsing
 - `python-docx>=0.8.11` - DOCX parsing
 - `Pillow>=10.0.0` - Image processing
+- `easyocr>=1.7.0` - OCR text extraction from images
 
 **Development Tools:**
 - `pytest>=7.0.0` + `pytest-cov>=4.0.0` - Testing
@@ -180,7 +181,7 @@ fileRAG/
 │       │       ├── docx_parser.py  # Word document parsing
 │       │       ├── txt_parser.py   # Plain text parsing
 │       │       ├── md_parser.py    # Markdown parsing
-│       │       └── image_parser.py # Image OCR parsing
+│       │       └── image_parser.py # Image parsing with BLIP + OCR
 │       │
 │       └── 🔍 Querying Layer
 │           ├── query_generator.py  # SLM query generation (Ollama)
