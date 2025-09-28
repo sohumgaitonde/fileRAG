@@ -30,6 +30,12 @@ test:
 test-crawler:
 	pytest tests/test_crawler.py -v
 
+test-chunker:
+	pytest tests/test_chunker.py -v
+
+test-chunker-integration:
+	pytest tests/integration_test_chunker.py -v -s
+
 test-coverage:
 	pytest tests/ --cov=src --cov-report=html
 
@@ -53,10 +59,15 @@ reset-db:
 # Help
 help:
 	@echo "Available commands:"
+	@echo "  setup       - Create venv and install dependencies"
 	@echo "  install     - Install the package"
 	@echo "  dev-install - Install with development dependencies"
 	@echo "  clean       - Remove Python cache files"
-	@echo "  test        - Run tests"
+	@echo "  test        - Run all tests"
+	@echo "  test-crawler - Run crawler tests only"
+	@echo "  test-chunker - Run chunker unit tests"
+	@echo "  test-chunker-integration - Run chunker integration tests"
+	@echo "  test-coverage - Run tests with coverage report"
 	@echo "  lint        - Run linting checks"
 	@echo "  format      - Format code"
 	@echo "  run         - Start the API server"

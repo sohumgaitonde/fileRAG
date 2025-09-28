@@ -1,0 +1,11 @@
+This is a sample document for testing the text chunker functionality.
+
+The document contains multiple paragraphs with different types of content. This first paragraph introduces the document and explains its purpose for testing.
+
+Machine learning is a subset of artificial intelligence that focuses on algorithms and statistical models. These systems can learn from data without being explicitly programmed for every scenario.
+
+Deep learning is a specialized area within machine learning that uses neural networks with multiple layers. These networks can process complex patterns and relationships in data, making them particularly effective for tasks like image recognition and natural language processing.
+
+Python is a popular programming language in the data science community. It offers numerous libraries and frameworks that make it easy to implement machine learning algorithms and data analysis workflows.
+
+This document serves as test data for validating the chunker's ability to handle various text structures, including paragraphs, technical content, and different sentence lengths. The chunker should be able to split this content into meaningful segments while preserving context and maintaining readability.
