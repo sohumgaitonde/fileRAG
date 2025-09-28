@@ -1,100 +1,277 @@
-# fileRAG - AI-Powered File Search System
+# fileRAG
 
-A desktop application for semantic file search using AI-powered embeddings and vector similarity search.
+A simple file RAG (Retrieval-Augmented Generation) system for effectively searching through local files.
+
+## ✨ Features
+
+- 🔍 **Smart File Discovery**: Automatically crawls directories for supported file types
+- 📄 **Multi-Format Support**: PDF, DOCX, TXT, Markdown, and Images (with OCR)
+- 🧠 **Advanced Chunking**: Intelligent text splitting using Chonkie
+- 🎯 **Vector Search**: Fast similarity search with ChromaDB
+- 🤖 **AI-Powered Queries**: Query optimization using SLM via Ollama
+- ⚡ **FastAPI Interface**: Modern REST API for easy integration
 
 ## 🏗️ Architecture
 
-This repository contains both the backend API and frontend desktop application:
+The system is organized into three main sections:
 
-- **Backend**: FastAPI-based Python service for file indexing and search
-- **Frontend**: Electron desktop app with Perplexity-style interface
+### 🖥️ Interface
+- **API Layer**: FastAPI-based REST API for interacting with the system
+
+### 📚 Indexing
+- **File Crawling**: Discover and monitor files in specified directories
+- **Content Parsing**: Extract text from various file formats (PDF, DOCX, TXT, MD, Images)
+- **Text Chunking**: Split content into manageable chunks using Chonkie
+- **Embeddings**: Generate vector embeddings using Qwen 2B model
+- **Pipeline**: Orchestrate the indexing process
+
+### 🔍 Querying
+- **Query Generation**: Generate search queries using SLM via Ollama
+- **Vector Database**: Store and retrieve embeddings using ChromaDB locally
+
+## 🛠️ Tech Stack
+
+- **Vector Database**: ChromaDB (local)
+- **Chunking**: Chonkie
+- **Embeddings**: Qwen 2B
+- **Query Generation**: SLM via Ollama
+- **API**: FastAPI
+- **File Parsing**: PyPDF2, python-docx, Pillow
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Python 3.8 or higher
+- Git
+
+### 🔧 Installation
+
+#### Automated Setup 
+```bash
+# Clone the repository
+git clone <your-repo-url>
+cd fileRAG
+
+# Run automated setup
+./setup_env.sh
+
+# Activate the environment
+source venv/bin/activate
+```
+
+### 📦 Dependencies
+
+The installation includes:
+
+**Core Dependencies:**
+- `chromadb>=0.4.0` - Vector database
+- `chonkie>=0.1.0` - Text chunking
+- `fastapi>=0.104.0` - API framework
+- `ollama>=0.2.0` - SLM integration
+- `transformers>=4.35.0` + `torch>=2.0.0` - Qwen 2B embeddings
+
+**File Processing:**
+- `PyPDF2>=3.0.0` - PDF parsing
+- `python-docx>=0.8.11` - DOCX parsing
+- `Pillow>=10.0.0` - Image processing
+
+**Development Tools:**
+- `pytest>=7.0.0` + `pytest-cov>=4.0.0` - Testing
+- `black`, `isort`, `flake8` - Code formatting
+
+## 🎯 Usage
+
+### Starting the API Server
+```bash
+# Activate environment
+source venv/bin/activate
+
+# Start the server
+make run
+# or
+uvicorn src.api:app --reload --host 0.0.0.0 --port 8000
+```
+
+### Testing the System
+```bash
+# Run all tests
+make test
+
+# Test the file crawler specifically
+make test-crawler
+
+# Run tests with coverage
+make test-coverage
+```
+
+### Development Workflow
+```bash
+# Activate environment (do this each session)
+source venv/bin/activate
+
+# Format code
+make format
+
+# Check code quality
+make lint
+
+# Run tests
+make test
+
+# Start development server
+make run
+
+# Deactivate when done
+deactivate
+```
 
 ## 📁 Project Structure
 
 ```
 fileRAG/
-├── backend/          # Python FastAPI backend
-│   ├── src/         # Source code
-│   ├── tests/       # Test files
-│   └── requirements.txt
-├── frontend/        # Electron desktop app
-│   ├── main.js      # Electron main process
-│   ├── index.html   # UI
-│   ├── renderer.js  # Frontend logic
-│   └── package.json
-└── README.md
+├── 📄 Project Configuration
+│   ├── pyproject.toml          # Project metadata and dependencies
+│   ├── requirements.txt        # Python dependencies
+│   ├── Makefile               # Development commands
+│   └── setup_env.sh           # Automated environment setup
+│
+├── 💻 Source Code
+│   └── src/
+│       ├── 🖥️ Interface Layer
+│       │   └── api.py              # FastAPI application
+│       │
+│       ├── 📚 Indexing Layer
+│       │   ├── crawler.py          # File discovery and crawling
+│       │   ├── chunker.py          # Text chunking with Chonkie
+│       │   ├── embeddings.py       # Vector embeddings (Qwen 2B)
+│       │   ├── pipeline.py         # Processing orchestration
+│       │   └── parsers/            # File format parsers
+│       │       ├── pdf_parser.py   # PDF document parsing
+│       │       ├── docx_parser.py  # Word document parsing
+│       │       ├── txt_parser.py   # Plain text parsing
+│       │       ├── md_parser.py    # Markdown parsing
+│       │       └── image_parser.py # Image OCR parsing
+│       │
+│       └── 🔍 Querying Layer
+│           ├── query_generator.py  # SLM query generation (Ollama)
+│           └── db.py              # ChromaDB operations
+│
+└── 🧪 Testing
+    ├── tests/
+    │   ├── test_crawler.py        # Crawler functionality tests
+    │   └── test_data/            # Sample files for testing
+    └── testing_main.py           # End-to-end testing script
 ```
 
-## 🚀 Quick Start
+## 🎮 Available Commands
 
-### Backend Setup
+All commands are available through the Makefile:
+
 ```bash
-cd backend
-pip install -r requirements.txt
-uvicorn src.api:app --reload
+# Environment Setup
+make setup          # Create venv and install dependencies
+make venv           # Create virtual environment only
+make install        # Install dependencies
+make dev-install    # Install with development dependencies
+
+# Development
+make clean          # Remove Python cache files
+make format         # Format code with black and isort
+make lint           # Run code quality checks
+
+# Testing
+make test           # Run all tests
+make test-crawler   # Run crawler tests specifically
+make test-coverage  # Run tests with coverage report
+
+# Running
+make run            # Start the API server
+make reset-db       # Reset the ChromaDB database
+
+# Help
+make help           # Show all available commands
 ```
 
-### Frontend Setup
+## 🔧 Configuration
+
+The system uses environment variables for configuration. Key settings include:
+
+- **File Processing**: Maximum file size, supported extensions
+- **Chunking**: Chunk size and overlap settings
+- **Database**: ChromaDB storage path
+- **Models**: Embedding and query generation model settings
+- **API**: Host and port configuration
+
+## 🧪 Testing
+
+The project includes comprehensive tests:
+
+### Running Tests
 ```bash
-cd frontend
-npm install
-npm start
+# All tests
+make test
+
+# Specific test files
+pytest tests/test_crawler.py -v
+
+# With coverage
+make test-coverage
 ```
 
-## 🛠️ Tech Stack
+### Test Structure
+- **Unit Tests**: Individual component testing
+- **Integration Tests**: End-to-end workflow testing
+- **Test Data**: Sample files for realistic testing scenarios
 
-### Backend
-- **FastAPI** - REST API framework
-- **ChromaDB** - Vector database
-- **Transformers** - AI embeddings (Qwen 2B)
-- **Ollama** - Query generation
-- **PyPDF2, python-docx** - File parsing
+## 🤝 Development
 
-### Frontend
-- **Electron** - Desktop app framework
-- **HTML/CSS/JavaScript** - UI
-- **Axios** - HTTP client
+### Code Quality
+The project enforces code quality through:
+- **Black**: Code formatting
+- **isort**: Import sorting
+- **Flake8**: Linting and style checks
+- **Type hints**: For better code documentation
 
-## 📋 Features
+### Contributing Workflow
+1. Activate the virtual environment: `source venv/bin/activate`
+2. Make your changes
+3. Format code: `make format`
+4. Run tests: `make test`
+5. Check linting: `make lint`
+6. Submit your changes
 
-- **File Indexing**: Support for PDF, DOCX, TXT, MD, Images
-- **Semantic Search**: AI-powered search using embeddings
-- **Desktop Interface**: Clean, Perplexity-style UI
-- **Real-time Updates**: Live indexing progress
-- **Local Storage**: ChromaDB for vector storage
+## 📝 License
 
-## 🔧 Development
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-### Backend Development
+## 🆘 Troubleshooting
+
+### Common Issues
+
+**Virtual Environment Issues:**
 ```bash
-cd backend
-make dev-install  # Install dev dependencies
-make test        # Run tests
-make lint        # Code linting
+# If venv activation fails
+python3 -m venv venv --clear
+source venv/bin/activate
 ```
 
-### Frontend Development
+**Dependency Issues:**
 ```bash
-cd frontend
-npm run dev      # Development mode
-npm run build    # Build for production
+# Upgrade pip and reinstall
+pip install --upgrade pip
+pip install -r requirements.txt --force-reinstall
 ```
 
-## 📝 API Endpoints
+**Permission Issues:**
+```bash
+# Make setup script executable
+chmod +x setup_env.sh
+```
 
-- `GET /` - Health check
-- `GET /health` - System status
-- `POST /api/index` - Start file indexing
-- `POST /api/search` - Search files
-- `GET /api/stats` - System statistics
+### Getting Help
 
-## 🎯 Usage
-
-1. **Start Backend**: Run the FastAPI server
-2. **Start Frontend**: Launch the Electron app
-3. **Index Files**: Use the Setup tab to select directories
-4. **Search**: Use the main search bar to find files
-
-## 📄 License
-
-MIT License - see LICENSE file for details.
+1. Check the test files for usage examples
+2. Run `make help` for available commands
+3. Check the logs for detailed error messages
+4. Ensure all prerequisites are installed
