@@ -14,7 +14,7 @@ from typing import List, Dict, Any, Optional
 import uuid
 import logging
 from datetime import datetime
-from multi_query_search import MultiQuerySearch
+from .multi_query_search import MultiQuerySearch
 
 # Set up logging
 logger = logging.getLogger(__name__)

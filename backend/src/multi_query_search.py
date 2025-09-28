@@ -10,8 +10,8 @@ This module handles:
 import time
 from typing import List, Dict, Any, Optional
 import logging
-from db import VectorDatabase
-from query_generator import QueryGenerator
+from .db import VectorDatabase
+from .query_generator import QueryGenerator
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)

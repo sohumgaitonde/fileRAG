@@ -37,8 +37,11 @@ class OpenAISLMProvider:
         payload = {
             "model": model,
             "messages": [{"role": "user", "content": prompt}],
-            "max_tokens": 300,
-            "temperature": 0.7
+            "max_tokens": 200,
+            "temperature": 0.2,
+            "top_p": 0.9,
+            "frequency_penalty": 0.1,
+            "presence_penalty": 0.0
         }
         
         headers = {
@@ -85,21 +88,17 @@ class QueryGenerator:
             return False
     
     def _create_query_variation_prompt(self, user_query: str) -> str:
-        """Create a prompt for generating 6 query variations."""
-        prompt = f"""Generate 6 different search queries for: "{user_query}"
+        """Create a prompt for generating 6 very similar query variations."""
+        prompt = f"""Generate 6 very similar search queries for: "{user_query}"
 
-Each query should be:
-- Different keywords or phrasing
-- Still relevant to the topic
-- Complete search phrases
+Make them almost identical - use the same words with minor changes. Include the original query as one of the 6.
 
-Format:
-1. [first variation]
-2. [second variation]
-3. [third variation]
-4. [fourth variation]
-5. [fifth variation]
-6. [sixth variation]"""
+1. [variation]
+2. [variation]
+3. [variation]
+4. [variation]
+5. [variation]
+6. [variation]"""
         return prompt
     
     def generate_query_variations(self, user_query: str) -> List[str]:

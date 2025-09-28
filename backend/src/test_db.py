@@ -13,7 +13,7 @@ from pathlib import Path
 # Add current directory to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from db import VectorDatabase
+from .db import VectorDatabase
 
 
 def test_database():
