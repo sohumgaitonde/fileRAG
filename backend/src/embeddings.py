@@ -14,6 +14,13 @@ import torch
 from pathlib import Path
 
 try:
+    from sentence_transformers import SentenceTransformer
+    SENTENCE_TRANSFORMERS_AVAILABLE = True
+except ImportError:
+    print("⚠️  Sentence-transformers not available. Install with: pip install sentence-transformers")
+    SENTENCE_TRANSFORMERS_AVAILABLE = False
+
+try:
     from transformers import AutoTokenizer, AutoModel
     TRANSFORMERS_AVAILABLE = True
 except ImportError:
@@ -22,11 +29,11 @@ except ImportError:
 
 
 class EmbeddingGenerator:
-    """Generates vector embeddings using Qwen 2B VL model."""
+    """Generates vector embeddings using sentence-transformers or transformers models."""
     
     def __init__(
         self, 
-        model_name: str = "Alibaba-NLP/gme-Qwen2-VL-2B-Instruct",
+        model_name: str = "sentence-transformers/all-MiniLM-L6-v2",
         device: Optional[str] = None,
         cache_dir: Optional[str] = None
     ):
@@ -44,40 +51,58 @@ class EmbeddingGenerator:
         self.model = None
         self.tokenizer = None
         self._model_loaded = False
+        self._use_sentence_transformers = "sentence-transformers/" in model_name
         
         print(f"🧠 Initializing EmbeddingGenerator with {model_name}")
         print(f"🖥️  Using device: {self.device}")
+        if self._use_sentence_transformers:
+            print("📚 Using sentence-transformers library")
+        else:
+            print("📚 Using transformers library")
     
     def load_model(self):
-        """Load the Qwen 2B VL embedding model."""
-        if not TRANSFORMERS_AVAILABLE:
-            raise ImportError("Transformers library not available. Install with: pip install transformers torch")
-        
+        """Load the embedding model."""
         if self._model_loaded:
             print("✅ Model already loaded")
             return
         
         try:
             print(f"📥 Loading model: {self.model_name}")
-            print("⚠️  This may take a while on first run (downloading ~4GB model)...")
             
-            # Load tokenizer
-            print("📝 Loading tokenizer...")
-            self.tokenizer = AutoTokenizer.from_pretrained(
-                self.model_name,
-                trust_remote_code=True,
-                cache_dir=self.cache_dir
-            )
-            
-            # Load model
-            print("🤖 Loading model...")
-            self.model = AutoModel.from_pretrained(
-                self.model_name,
-                trust_remote_code=True,
-                torch_dtype="auto",
-                device_map="auto",
-                cache_dir=self.cache_dir
-            )
+            if self._use_sentence_transformers:
+                if not SENTENCE_TRANSFORMERS_AVAILABLE:
+                    raise ImportError("Sentence-transformers library not available. Install with: pip install sentence-transformers")
+                
+                print("🤖 Loading sentence-transformers model...")
+                self.model = SentenceTransformer(
+                    self.model_name.replace("sentence-transformers/", ""),
+                    device=self.device,
+                    cache_folder=self.cache_dir
+                )
+                
+            else:
+                if not TRANSFORMERS_AVAILABLE:
+                    raise ImportError("Transformers library not available. Install with: pip install transformers torch")
+                
+                print("⚠️  This may take a while on first run (downloading model)...")
+                
+                # Load tokenizer
+                print("📝 Loading tokenizer...")
+                self.tokenizer = AutoTokenizer.from_pretrained(
+                    self.model_name,
+                    trust_remote_code=True,
+                    cache_dir=self.cache_dir
+                )
+                
+                # Load model
+                print("🤖 Loading transformers model...")
+                self.model = AutoModel.from_pretrained(
+                    self.model_name,
+                    trust_remote_code=True,
+                    torch_dtype="auto",
+                    device_map="auto",
+                    cache_dir=self.cache_dir
+                )
             
             self._model_loaded = True
             print("✅ Model loaded successfully!")
@@ -115,15 +140,30 @@ class EmbeddingGenerator:
                 print("⚠️  No valid texts to process")
                 return np.array([])
             
-            # Generate embeddings using the model's custom method
-            with torch.no_grad():
-                embeddings = self.model.get_text_embeddings(valid_texts)
+            if self._use_sentence_transformers:
+                # Use sentence-transformers
+                embeddings = self.model.encode(valid_texts, convert_to_numpy=True)
+                
+            else:
+                # Use transformers with mean pooling
+                with torch.no_grad():
+                    # Check if model has custom embedding method
+                    if hasattr(self.model, 'get_text_embeddings'):
+                        embeddings = self.model.get_text_embeddings(valid_texts)
+                    else:
+                        # Use standard transformers approach with mean pooling
+                        inputs = self.tokenizer(valid_texts, padding=True, truncation=True, 
+                                              return_tensors="pt", max_length=512)
+                        if self.device != "cpu":
+                            inputs = {k: v.to(self.device) for k, v in inputs.items()}
+                        
+                        outputs = self.model(**inputs)
+                        # Mean pooling
+                        embeddings = outputs.last_hidden_state.mean(dim=1)
+                        embeddings = embeddings.cpu().numpy()
             
-            # Convert to numpy array
-            if hasattr(embeddings, 'cpu') and hasattr(embeddings, 'numpy'):
-                # It's a torch tensor
-                embeddings = embeddings.cpu().numpy()
-            elif not isinstance(embeddings, np.ndarray):
+            # Ensure numpy array
+            if not isinstance(embeddings, np.ndarray):
                 embeddings = np.array(embeddings)
             
             print(f"✅ Generated embeddings shape: {embeddings.shape}")

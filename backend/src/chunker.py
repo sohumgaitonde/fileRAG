@@ -12,13 +12,13 @@ from typing import List, Dict, Optional, Union
 import uuid
 try:
     from chonkie import TokenChunker, SentenceChunker, SemanticChunker
-    # WordChunker may not be available in all versions
+    # WordChunker may not be available in all versions - check lazily
     try:
         from chonkie import WordChunker
         WORD_CHUNKER_AVAILABLE = True
     except ImportError:
         WORD_CHUNKER_AVAILABLE = False
-        print("⚠️  WordChunker not available in this version of Chonkie")
+        # Don't print warning here - only when WordChunker is actually requested
     
     CHONKIE_AVAILABLE = True
 except ImportError:
@@ -68,7 +68,7 @@ class TextChunker:
                 )
             elif self.chunker_type == "word":
                 if not WORD_CHUNKER_AVAILABLE:
-                    print(f"⚠️  WordChunker not available, falling back to token chunker")
+                    print(f"ℹ️  WordChunker not available in this Chonkie version, using TokenChunker instead")
                     return TokenChunker(
                         chunk_size=self.chunk_size,
                         chunk_overlap=self.overlap
