@@ -10,9 +10,14 @@ This module provides the REST API endpoints for:
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 import uuid
+import logging
 from datetime import datetime
+from multi_query_search import MultiQuerySearch
+
+# Set up logging
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="fileRAG API",
@@ -36,12 +41,17 @@ class IndexRequest(BaseModel):
 class SearchRequest(BaseModel):
     query: str
     limit: int = 10
+    result_limit: int = 20  # New parameter for multi-query system
 
 class SearchResult(BaseModel):
     filename: str
     content: str
     file_path: str
     score: float
+    weighted_score: Optional[float] = None
+    query_importance: Optional[float] = None
+    found_by_queries: Optional[List[str]] = None
+    total_matches: Optional[int] = None
 
 class IndexResponse(BaseModel):
     job_id: str
@@ -53,6 +63,13 @@ class StatsResponse(BaseModel):
     db_size: str
     last_indexed: str
     status: str
+
+class SearchResponse(BaseModel):
+    results: List[SearchResult]
+    query_variations: List[str]
+    performance_metrics: Dict[str, Any]
+    quality_metrics: Dict[str, Any]
+    total_time: float
 
 # In-memory storage for demo (replace with real database later)
 indexing_jobs = {}
@@ -91,37 +108,65 @@ async def start_indexing(request: IndexRequest):
         message=f"Indexing started for directory: {request.directory_path}"
     )
 
+# Initialize multi-query search system
+multi_query_search = MultiQuerySearch()
+
 # Search endpoint
-@app.post("/api/search", response_model=List[SearchResult])
+@app.post("/api/search", response_model=SearchResponse)
 async def search_files(request: SearchRequest):
-    """Search through indexed files."""
-    
-    # Dummy search results for demo
-    dummy_results = [
-        SearchResult(
-            filename="sample_document.pdf",
-            content=f"Found content related to '{request.query}' in this document. This is a sample search result showing how the search functionality works.",
-            file_path="/Users/example/documents/sample_document.pdf",
-            score=0.95
-        ),
-        SearchResult(
-            filename="research_paper.docx",
-            content=f"Another document containing information about '{request.query}'. This demonstrates multiple search results.",
-            file_path="/Users/example/documents/research_paper.docx",
-            score=0.87
-        ),
-        SearchResult(
-            filename="notes.txt",
-            content=f"Quick notes and thoughts about '{request.query}'. This shows how different file types are handled.",
-            file_path="/Users/example/notes/notes.txt",
-            score=0.72
+    """Search through indexed files using multi-query system."""
+    try:
+        # Use multi-query search system
+        search_results = multi_query_search.search_multiple_queries(
+            user_query=request.query,
+            n_results_per_query=5,  # 5 results per query variation
+            global_limit=request.result_limit
         )
-    ]
-    
-    # Cache results for demo
-    search_results_cache[request.query] = dummy_results
-    
-    return dummy_results[:request.limit]
+        
+        # Convert results to SearchResult format
+        formatted_results = []
+        for result in search_results["results"]:
+            formatted_results.append(SearchResult(
+                filename=result.get("metadata", {}).get("filename", "Unknown"),
+                content=result.get("document", ""),
+                file_path=result.get("metadata", {}).get("filepath", ""),
+                score=result.get("base_score", 0.0),
+                weighted_score=result.get("weighted_score", 0.0),
+                query_importance=result.get("query_importance", 1.0),
+                found_by_queries=result.get("found_by_queries", []),
+                total_matches=result.get("total_matches", 1)
+            ))
+        
+        # Return enhanced search response
+        return SearchResponse(
+            results=formatted_results,
+            query_variations=search_results["query_variations"],
+            performance_metrics=search_results["performance_metrics"],
+            quality_metrics=search_results["performance_metrics"].get("quality_metrics", {}),
+            total_time=search_results["performance_metrics"]["total_time"]
+        )
+        
+    except Exception as e:
+        # Fallback to single query if multi-query fails
+        logger.error(f"Multi-query search failed: {e}")
+        
+        # Simple fallback search (you could implement a single-query fallback here)
+        fallback_results = [
+            SearchResult(
+                filename="fallback_result.txt",
+                content=f"Fallback search result for '{request.query}'. Multi-query system temporarily unavailable.",
+                file_path="/fallback/result.txt",
+                score=0.5
+            )
+        ]
+        
+        return SearchResponse(
+            results=fallback_results,
+            query_variations=[request.query],
+            performance_metrics={"error": str(e), "fallback_used": True},
+            quality_metrics={"fallback": True},
+            total_time=0.0
+        )
 
 # Status endpoint
 @app.get("/api/stats", response_model=StatsResponse)
