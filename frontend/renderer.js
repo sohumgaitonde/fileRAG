@@ -1,5 +1,6 @@
 // fileRAG Desktop - Renderer Process
 const { ipcRenderer } = require('electron');
+const { shell } = require('electron');
 const axios = require('axios');
 
 // API Configuration
@@ -8,6 +9,75 @@ const API_BASE_URL = 'http://localhost:8000';
 // Global state
 let currentTab = 'index';
 let isIndexing = false;
+
+// File type utilities
+function getFileExtension(filename) {
+    return filename.split('.').pop().toLowerCase();
+}
+
+function getFileIconClass(filename) {
+    const ext = getFileExtension(filename);
+    const iconMap = {
+        'pdf': 'pdf',
+        'doc': 'docx',
+        'docx': 'docx',
+        'txt': 'txt',
+        'md': 'md',
+        'rtf': 'docx',
+        'odt': 'docx'
+    };
+    return iconMap[ext] || 'default';
+}
+
+function getFileIcon(filename) {
+    const ext = getFileExtension(filename);
+    const iconMap = {
+        'pdf': '📄',
+        'doc': '📝',
+        'docx': '📝',
+        'txt': '📄',
+        'md': '📝',
+        'rtf': '📝',
+        'odt': '📝'
+    };
+    return iconMap[ext] || '📄';
+}
+
+function formatFileSize(bytes) {
+    if (!bytes) return 'Unknown size';
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
+}
+
+function formatDate(dateString) {
+    if (!dateString) return 'Unknown date';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+    });
+}
+
+// File opening functionality
+function openFile(filePath) {
+    try {
+        shell.openPath(filePath);
+    } catch (error) {
+        console.error('Error opening file:', error);
+        alert('Could not open file. Please check if the file exists and you have permission to access it.');
+    }
+}
+
+function showFileInFinder(filePath) {
+    try {
+        shell.showItemInFolder(filePath);
+    } catch (error) {
+        console.error('Error showing file in finder:', error);
+        alert('Could not show file in Finder.');
+    }
+}
 
 // Initialize the app
 document.addEventListener('DOMContentLoaded', function() {
@@ -204,26 +274,58 @@ function displaySearchResults(data) {
         const queryImportance = result.query_importance || 1.0;
         const foundByQueries = result.found_by_queries || [];
         const totalMatches = result.total_matches || 1;
+        const filename = result.filename || 'Unknown File';
+        const filePath = result.file_path || '';
+        const content = result.content || result.text || 'No preview available';
+        
+        // Truncate content for preview
+        const previewContent = content.length > 200 ? content.substring(0, 200) + '...' : content;
         
         html += `
-            <div class="search-result enhanced">
-                <div class="result-header">
-                    <h4>📄 ${result.filename || 'Unknown File'}</h4>
-                    <div class="score-info">
-                        <span class="score primary">${(baseScore * 100).toFixed(1)}%</span>
-                        ${weightedScore !== baseScore ? `<span class="score weighted">Weighted: ${(weightedScore * 100).toFixed(1)}%</span>` : ''}
+            <div class="search-result enhanced" onclick="openFile('${filePath}')" title="Click to open file">
+                <div class="file-actions">
+                    <button class="file-action-btn" onclick="event.stopPropagation(); showFileInFinder('${filePath}')" title="Show in Finder">
+                        📁
+                    </button>
+                </div>
+                
+                <div class="file-preview">
+                    <div class="file-icon ${getFileIconClass(filename)}">
+                        ${getFileIcon(filename)}
                     </div>
-                </div>
-                
-                <div class="result-metrics">
-                    ${queryImportance !== 1.0 ? `<span class="metric">🎯 Importance: ${queryImportance.toFixed(2)}</span>` : ''}
-                    ${totalMatches > 1 ? `<span class="metric">🔍 Found ${totalMatches} times</span>` : ''}
-                    ${foundByQueries.length > 0 ? `<span class="metric">📝 By ${foundByQueries.length} queries</span>` : ''}
-                </div>
-                
-                <div class="result-content">
-                    <p><strong>Content:</strong> ${result.content || result.text || 'No preview available'}</p>
-                    <p><strong>Path:</strong> <span class="file-path">${result.file_path || 'Unknown path'}</span></p>
+                    <div class="file-info">
+                        <div class="file-name">${filename}</div>
+                        <div class="file-meta">
+                            <div class="file-meta-item">
+                                <span>📊</span>
+                                <span>${(baseScore * 100).toFixed(1)}% match</span>
+                            </div>
+                            ${weightedScore !== baseScore ? `
+                                <div class="file-meta-item">
+                                    <span>⚖️</span>
+                                    <span>Weighted: ${(weightedScore * 100).toFixed(1)}%</span>
+                                </div>
+                            ` : ''}
+                            ${queryImportance !== 1.0 ? `
+                                <div class="file-meta-item">
+                                    <span>🎯</span>
+                                    <span>Importance: ${queryImportance.toFixed(2)}</span>
+                                </div>
+                            ` : ''}
+                            ${totalMatches > 1 ? `
+                                <div class="file-meta-item">
+                                    <span>🔍</span>
+                                    <span>Found ${totalMatches} times</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div class="file-content-preview">
+                            ${previewContent}
+                        </div>
+                        <div class="file-path" style="margin-top: 8px; font-size: 11px; color: #666;">
+                            ${filePath}
+                        </div>
+                    </div>
                 </div>
                 
                 ${foundByQueries.length > 0 ? `
