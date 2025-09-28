@@ -128,7 +128,8 @@ async function performSearch() {
         
         const response = await axios.post(`${API_BASE_URL}/api/search`, {
             query: query,
-            limit: 10
+            limit: 10,
+            result_limit: 20
         });
         
         displaySearchResults(response.data);
@@ -139,25 +140,104 @@ async function performSearch() {
     }
 }
 
-function displaySearchResults(results) {
+function displaySearchResults(data) {
     const container = document.getElementById('searchResults');
+    
+    // Handle both old format (array) and new format (object with results array)
+    const results = data.results || data;
+    const queryVariations = data.query_variations || [];
+    const performanceMetrics = data.performance_metrics || {};
+    const qualityMetrics = data.quality_metrics || {};
+    const totalTime = data.total_time || 0;
     
     if (!results || results.length === 0) {
         container.innerHTML = '<div class="status info">No results found</div>';
         return;
     }
     
-    let html = '<h3>Search Results:</h3>';
+    let html = '<div class="search-header">';
+    html += '<h3>🔍 Search Results</h3>';
+    
+    // Display performance metrics
+    if (totalTime > 0) {
+        html += `<div class="performance-info">`;
+        html += `<span class="metric">⏱️ Search Time: ${totalTime.toFixed(2)}s</span>`;
+        html += `<span class="metric">📊 Results: ${results.length}</span>`;
+        if (queryVariations.length > 0) {
+            html += `<span class="metric">🔄 Queries: ${queryVariations.length}</span>`;
+        }
+        html += `</div>`;
+    }
+    
+    // Display quality metrics if available
+    if (qualityMetrics.avg_score !== undefined) {
+        html += `<div class="quality-info">`;
+        html += `<span class="metric">📈 Avg Score: ${(qualityMetrics.avg_score * 100).toFixed(1)}%</span>`;
+        if (qualityMetrics.diversity_score !== undefined) {
+            html += `<span class="metric">🎯 Diversity: ${(qualityMetrics.diversity_score * 100).toFixed(1)}%</span>`;
+        }
+        if (qualityMetrics.coverage_score !== undefined) {
+            html += `<span class="metric">📋 Coverage: ${(qualityMetrics.coverage_score * 100).toFixed(1)}%</span>`;
+        }
+        html += `</div>`;
+    }
+    
+    html += '</div>';
+    
+    // Display query variations if available
+    if (queryVariations.length > 0) {
+        html += '<div class="query-variations">';
+        html += '<h4>🔍 Generated Query Variations:</h4>';
+        html += '<div class="variations-list">';
+        queryVariations.forEach((variation, index) => {
+            html += `<div class="variation-item">${index + 1}. ${variation}</div>`;
+        });
+        html += '</div>';
+        html += '</div>';
+    }
+    
+    // Display search results
+    html += '<div class="results-container">';
     results.forEach((result, index) => {
+        const baseScore = result.score || 0;
+        const weightedScore = result.weighted_score || baseScore;
+        const queryImportance = result.query_importance || 1.0;
+        const foundByQueries = result.found_by_queries || [];
+        const totalMatches = result.total_matches || 1;
+        
         html += `
-            <div class="search-result">
-                <h4>${result.filename || 'Unknown File'}</h4>
-                <p><strong>Score:</strong> <span style="color: #00ffff;">${(result.score * 100).toFixed(1)}%</span></p>
-                <p><strong>Content:</strong> ${result.content || result.text || 'No preview available'}</p>
-                <p><strong>Path:</strong> <span style="color: #888; font-family: monospace;">${result.file_path || 'Unknown path'}</span></p>
+            <div class="search-result enhanced">
+                <div class="result-header">
+                    <h4>📄 ${result.filename || 'Unknown File'}</h4>
+                    <div class="score-info">
+                        <span class="score primary">${(baseScore * 100).toFixed(1)}%</span>
+                        ${weightedScore !== baseScore ? `<span class="score weighted">Weighted: ${(weightedScore * 100).toFixed(1)}%</span>` : ''}
+                    </div>
+                </div>
+                
+                <div class="result-metrics">
+                    ${queryImportance !== 1.0 ? `<span class="metric">🎯 Importance: ${queryImportance.toFixed(2)}</span>` : ''}
+                    ${totalMatches > 1 ? `<span class="metric">🔍 Found ${totalMatches} times</span>` : ''}
+                    ${foundByQueries.length > 0 ? `<span class="metric">📝 By ${foundByQueries.length} queries</span>` : ''}
+                </div>
+                
+                <div class="result-content">
+                    <p><strong>Content:</strong> ${result.content || result.text || 'No preview available'}</p>
+                    <p><strong>Path:</strong> <span class="file-path">${result.file_path || 'Unknown path'}</span></p>
+                </div>
+                
+                ${foundByQueries.length > 0 ? `
+                    <div class="query-attribution">
+                        <strong>Found by queries:</strong>
+                        <div class="query-tags">
+                            ${foundByQueries.map(query => `<span class="query-tag">${query}</span>`).join('')}
+                        </div>
+                    </div>
+                ` : ''}
             </div>
         `;
     });
+    html += '</div>';
     
     container.innerHTML = html;
 }
